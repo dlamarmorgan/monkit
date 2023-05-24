@@ -17,8 +17,6 @@ package monkit
 import (
 	"sync"
 	"time"
-
-	"github.com/spacemonkeygo/monkit/v3/monotime"
 )
 
 // Timer is a threadsafe convenience wrapper around a DurationDist. You should
@@ -43,14 +41,12 @@ type Timer struct {
 
 // NewTimer constructs a new Timer.
 func NewTimer(key SeriesKey) *Timer {
-	return &Timer{times: NewDurationDist(key)}
+	return &Timer{}
 }
 
 // Start constructs a RunningTimer
 func (t *Timer) Start() *RunningTimer {
-	return &RunningTimer{
-		start: monotime.Now(),
-		t:     t}
+	return &RunningTimer{}
 }
 
 // RunningTimer should be constructed from a Timer.
@@ -62,35 +58,21 @@ type RunningTimer struct {
 
 // Elapsed just returns the amount of time since the timer started
 func (r *RunningTimer) Elapsed() time.Duration {
-	return time.Since(r.start)
+	return time.Duration(0)
 }
 
 // Stop stops the timer, adds the duration to the statistics information, and
 // returns the elapsed time.
 func (r *RunningTimer) Stop() time.Duration {
-	elapsed := r.Elapsed()
-	r.t.mtx.Lock()
-	if !r.stopped {
-		r.t.times.Insert(elapsed)
-		r.stopped = true
-	}
-	r.t.mtx.Unlock()
-	return elapsed
+	return time.Duration(0)
 }
 
 // Values returns the main timer values
 func (t *Timer) Values() *DurationDist {
-	t.mtx.Lock()
-	rv := t.times.Copy()
-	t.mtx.Unlock()
-	return rv
+	return &DurationDist{}
 }
 
 // Stats implements the StatSource interface
 func (t *Timer) Stats(cb func(key SeriesKey, field string, val float64)) {
-	t.mtx.Lock()
-	times := t.times.Copy()
-	t.mtx.Unlock()
-
-	times.Stats(cb)
+	return
 }

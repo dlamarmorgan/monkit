@@ -19,7 +19,6 @@
 package monkit
 
 import (
-	"sort"
 	"time"
 )
 
@@ -43,143 +42,46 @@ type DurationDist struct {
 	Sum time.Duration
 
 	key       SeriesKey
-	reservoir [ReservoirSize]float32
-	rng       xorshift128
+	reservoir []float32
+	rng       string
 	sorted    bool
-}
-
-func initDurationDist(v *DurationDist, key SeriesKey) {
-	v.key = key
-	v.rng = newXORShift128()
 }
 
 // NewDurationDist creates a distribution of time.Durations.
 func NewDurationDist(key SeriesKey) (d *DurationDist) {
-	d = &DurationDist{}
-	initDurationDist(d, key)
-	return d
+	return &DurationDist{}
 }
 
 // Insert adds a value to the distribution, updating appropriate values.
 func (d *DurationDist) Insert(val time.Duration) {
-	if d.Count != 0 {
-		if val < d.Low {
-			d.Low = val
-		}
-		if val > d.High {
-			d.High = val
-		}
-	} else {
-		d.Low = val
-		d.High = val
-	}
-	d.Recent = val
-	d.Sum += val
-
-	index := d.Count
-	d.Count += 1
-
-	if index < ReservoirSize {
-		d.reservoir[index] = float32(val)
-		d.sorted = false
-	} else {
-		window := d.Count
-		// careful, the capitalization of Window is important
-		if Window > 0 && window > Window {
-			window = Window
-		}
-		// fast, but kind of biased. probably okay
-		j := d.rng.Uint64() % uint64(window)
-		if j < ReservoirSize {
-			d.reservoir[int(j)] = float32(val)
-			d.sorted = false
-		}
-	}
+	return
 }
 
 // FullAverage calculates and returns the average of all inserted values.
 func (d *DurationDist) FullAverage() time.Duration {
-	if d.Count > 0 {
-		return d.Sum / time.Duration(d.Count)
-	}
-	return 0
+	return time.Duration(0)
 }
 
 // ReservoirAverage calculates the average of the current reservoir.
 func (d *DurationDist) ReservoirAverage() time.Duration {
-	amount := ReservoirSize
-	if d.Count < int64(amount) {
-		amount = int(d.Count)
-	}
-	if amount <= 0 {
-		return 0
-	}
-	var sum float32
-	for i := 0; i < amount; i++ {
-		sum += d.reservoir[i]
-	}
-	return time.Duration(sum / float32(amount))
+	return time.Duration(0)
 }
 
 // Query will return the approximate value at the given quantile from the
 // reservoir, where 0 <= quantile <= 1.
 func (d *DurationDist) Query(quantile float64) time.Duration {
-	rlen := int(ReservoirSize)
-	if int64(rlen) > d.Count {
-		rlen = int(d.Count)
-	}
-
-	if rlen < 2 {
-		return time.Duration(d.reservoir[0])
-	}
-
-	reservoir := d.reservoir[:rlen]
-	if !d.sorted {
-		sort.Sort(float32Slice(reservoir))
-		d.sorted = true
-	}
-
-	if quantile <= 0 {
-		return time.Duration(reservoir[0])
-	}
-	if quantile >= 1 {
-		return time.Duration(reservoir[rlen-1])
-	}
-
-	idx_float := quantile * float64(rlen-1)
-	idx := int(idx_float)
-
-	diff := idx_float - float64(idx)
-	prior := float64(reservoir[idx])
-	return time.Duration(prior + diff*(float64(reservoir[idx+1])-prior))
+	return time.Duration(0)
 }
 
 // Copy returns a full copy of the entire distribution.
 func (d *DurationDist) Copy() *DurationDist {
-	cp := *d
-	cp.rng = newXORShift128()
-	return &cp
+	return &DurationDist{}
 }
 
 func (d *DurationDist) Reset() {
-	d.Low, d.High, d.Recent, d.Count, d.Sum = 0, 0, 0, 0, 0
-	// resetting count will reset the quantile reservoir
+	return
 }
 
 func (d *DurationDist) Stats(cb func(key SeriesKey, field string, val float64)) {
-	count := d.Count
-	cb(d.key, "count", float64(count))
-	if count > 0 {
-		cb(d.key, "sum", d.toFloat64(d.Sum))
-		cb(d.key, "min", d.toFloat64(d.Low))
-		cb(d.key, "max", d.toFloat64(d.High))
-		cb(d.key, "rmin", d.toFloat64(d.Query(0)))
-		cb(d.key, "ravg", d.toFloat64(d.ReservoirAverage()))
-		cb(d.key, "r10", d.toFloat64(d.Query(.1)))
-		cb(d.key, "r50", d.toFloat64(d.Query(.5)))
-		cb(d.key, "r90", d.toFloat64(d.Query(.9)))
-		cb(d.key, "r99", d.toFloat64(d.Query(.99)))
-		cb(d.key, "rmax", d.toFloat64(d.Query(1)))
-		cb(d.key, "recent", d.toFloat64(d.Recent))
-	}
+	return
 }

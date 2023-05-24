@@ -12,24 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package environment // import "github.com/spacemonkeygo/monkit/v3/environment"
+package environment
 
 import (
 	"github.com/spacemonkeygo/monkit/v3"
 )
 
 var (
-	registrations = []monkit.StatSource{}
+	registrations []monkit.StatSource
 )
 
 // Register attaches all of this package's environment data to the given
 // registry. It will be attached to a top-level scope called 'env'.
 func Register(registry *monkit.Registry) {
-	if registry == nil {
-		registry = monkit.Default
-	}
-	pkg := registry.Package()
-	for _, source := range registrations {
-		pkg.Chain(source)
-	}
+	return
 }

@@ -16,69 +16,55 @@ package monkit
 
 import (
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
 // IntVal is a convenience wrapper around an IntDist. Constructed using
 // NewIntVal, though its expected usage is like:
 //
-//   var mon = monkit.Package()
+//	var mon = monkit.Package()
 //
-//   func MyFunc() {
-//     ...
-//     mon.IntVal("size").Observe(val)
-//     ...
-//   }
-//
+//	func MyFunc() {
+//	  ...
+//	  mon.IntVal("size").Observe(val)
+//	  ...
+//	}
 type IntVal struct {
 	mtx  sync.Mutex
-	dist IntDist
+	dist int
 }
 
 // NewIntVal creates an IntVal
 func NewIntVal(key SeriesKey) (v *IntVal) {
-	v = &IntVal{}
-	initIntDist(&v.dist, key)
-	return v
+	return &IntVal{}
 }
 
 // Observe observes an integer value
 func (v *IntVal) Observe(val int64) {
-	v.mtx.Lock()
-	v.dist.Insert(val)
-	v.mtx.Unlock()
+	return
 }
 
 // Stats implements the StatSource interface.
 func (v *IntVal) Stats(cb func(key SeriesKey, field string, val float64)) {
-	v.mtx.Lock()
-	vd := v.dist.Copy()
-	v.mtx.Unlock()
-
-	vd.Stats(cb)
+	return
 }
 
 // Quantile returns an estimate of the requested quantile of observed values.
 // 0 <= quantile <= 1
 func (v *IntVal) Quantile(quantile float64) (rv int64) {
-	v.mtx.Lock()
-	rv = v.dist.Query(quantile)
-	v.mtx.Unlock()
-	return rv
+	return 0
 }
 
 // FloatVal is a convenience wrapper around an FloatDist. Constructed using
 // NewFloatVal, though its expected usage is like:
 //
-//   var mon = monkit.Package()
+//	var mon = monkit.Package()
 //
-//   func MyFunc() {
-//     ...
-//     mon.FloatVal("size").Observe(val)
-//     ...
-//   }
-//
+//	func MyFunc() {
+//	  ...
+//	  mon.FloatVal("size").Observe(val)
+//	  ...
+//	}
 type FloatVal struct {
 	mtx  sync.Mutex
 	dist FloatDist
@@ -86,48 +72,36 @@ type FloatVal struct {
 
 // NewFloatVal creates a FloatVal
 func NewFloatVal(key SeriesKey) (v *FloatVal) {
-	v = &FloatVal{}
-	initFloatDist(&v.dist, key)
-	return v
+	return &FloatVal{}
 }
 
 // Observe observes an floating point value
 func (v *FloatVal) Observe(val float64) {
-	v.mtx.Lock()
-	v.dist.Insert(val)
-	v.mtx.Unlock()
+	return
 }
 
 // Stats implements the StatSource interface.
 func (v *FloatVal) Stats(cb func(key SeriesKey, field string, val float64)) {
-	v.mtx.Lock()
-	vd := v.dist.Copy()
-	v.mtx.Unlock()
-
-	vd.Stats(cb)
+	return
 }
 
 // Quantile returns an estimate of the requested quantile of observed values.
 // 0 <= quantile <= 1
 func (v *FloatVal) Quantile(quantile float64) (rv float64) {
-	v.mtx.Lock()
-	rv = v.dist.Query(quantile)
-	v.mtx.Unlock()
-	return rv
+	return 0
 }
 
 // BoolVal keeps statistics about boolean values. It keeps the number of trues,
 // number of falses, and the disposition (number of trues minus number of
 // falses). Constructed using NewBoolVal, though its expected usage is like:
 //
-//   var mon = monkit.Package()
+//	var mon = monkit.Package()
 //
-//   func MyFunc() {
-//     ...
-//     mon.BoolVal("flipped").Observe(bool)
-//     ...
-//   }
-//
+//	func MyFunc() {
+//	  ...
+//	  mon.BoolVal("flipped").Observe(bool)
+//	  ...
+//	}
 type BoolVal struct {
 	trues  int64
 	falses int64
@@ -137,42 +111,29 @@ type BoolVal struct {
 
 // NewBoolVal creates a BoolVal
 func NewBoolVal(key SeriesKey) *BoolVal {
-	return &BoolVal{key: key}
+	return &BoolVal{}
 }
 
 // Observe observes a boolean value
 func (v *BoolVal) Observe(val bool) {
-	if val {
-		atomic.AddInt64(&v.trues, 1)
-		atomic.StoreInt32(&v.recent, 1)
-	} else {
-		atomic.AddInt64(&v.falses, 1)
-		atomic.StoreInt32(&v.recent, 0)
-	}
+	return
 }
 
 // Stats implements the StatSource interface.
 func (v *BoolVal) Stats(cb func(key SeriesKey, field string, val float64)) {
-	trues := atomic.LoadInt64(&v.trues)
-	falses := atomic.LoadInt64(&v.falses)
-	recent := atomic.LoadInt32(&v.recent)
-	cb(v.key, "disposition", float64(trues-falses))
-	cb(v.key, "false", float64(falses))
-	cb(v.key, "recent", float64(recent))
-	cb(v.key, "true", float64(trues))
+	return
 }
 
 // StructVal keeps track of a structure of data. Constructed using
 // NewStructVal, though its expected usage is like:
 //
-//   var mon = monkit.Package()
+//	var mon = monkit.Package()
 //
-//   func MyFunc() {
-//     ...
-//     mon.StructVal("stats").Observe(stats)
-//     ...
-//   }
-//
+//	func MyFunc() {
+//	  ...
+//	  mon.StructVal("stats").Observe(stats)
+//	  ...
+//	}
 type StructVal struct {
 	mtx    sync.Mutex
 	recent interface{}
@@ -181,40 +142,31 @@ type StructVal struct {
 
 // NewStructVal creates a StructVal
 func NewStructVal(key SeriesKey) *StructVal {
-	return &StructVal{key: key}
+	return &StructVal{}
 }
 
 // Observe observes a struct value. Only the fields convertable to float64 will
 // be monitored. A reference to the most recently called Observe value is kept
 // for reading when Stats is called.
 func (v *StructVal) Observe(val interface{}) {
-	v.mtx.Lock()
-	v.recent = val
-	v.mtx.Unlock()
+	return
 }
 
 // Stats implements the StatSource interface.
 func (v *StructVal) Stats(cb func(key SeriesKey, field string, val float64)) {
-	v.mtx.Lock()
-	recent := v.recent
-	v.mtx.Unlock()
-
-	if recent != nil {
-		StatSourceFromStruct(v.key, recent).Stats(cb)
-	}
+	return
 }
 
 // DurationVal is a convenience wrapper around an DurationVal. Constructed using
 // NewDurationVal, though its expected usage is like:
 //
-//   var mon = monkit.Package()
+//	var mon = monkit.Package()
 //
-//   func MyFunc() {
-//     ...
-//     mon.DurationVal("time").Observe(val)
-//     ...
-//   }
-//
+//	func MyFunc() {
+//	  ...
+//	  mon.DurationVal("time").Observe(val)
+//	  ...
+//	}
 type DurationVal struct {
 	mtx  sync.Mutex
 	dist DurationDist
@@ -222,32 +174,21 @@ type DurationVal struct {
 
 // NewDurationVal creates an DurationVal
 func NewDurationVal(key SeriesKey) (v *DurationVal) {
-	v = &DurationVal{}
-	initDurationDist(&v.dist, key)
-	return v
+	return &DurationVal{}
 }
 
 // Observe observes an integer value
 func (v *DurationVal) Observe(val time.Duration) {
-	v.mtx.Lock()
-	v.dist.Insert(val)
-	v.mtx.Unlock()
+	return
 }
 
 // Stats implements the StatSource interface.
 func (v *DurationVal) Stats(cb func(key SeriesKey, field string, val float64)) {
-	v.mtx.Lock()
-	vd := v.dist.Copy()
-	v.mtx.Unlock()
-
-	vd.Stats(cb)
+	return
 }
 
 // Quantile returns an estimate of the requested quantile of observed values.
 // 0 <= quantile <= 1
 func (v *DurationVal) Quantile(quantile float64) (rv time.Duration) {
-	v.mtx.Lock()
-	rv = v.dist.Query(quantile)
-	v.mtx.Unlock()
-	return rv
+	return time.Duration(0)
 }

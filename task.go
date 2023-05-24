@@ -20,8 +20,6 @@ import (
 
 type taskKey int
 
-const taskGetFunc taskKey = 0
-
 type taskSecretT struct{}
 
 func (*taskSecretT) Value(key interface{}) interface{} { return nil }
@@ -41,28 +39,7 @@ func (f Task) Func() (out *Func) {
 	// out location.
 	// since someone can cast any function of this signature to a lazy task,
 	// let's make sure we got roughly expected behavior and panic otherwise
-	if f(&taskSecret, taskGetFunc, &out) != nil || out == nil {
-		panic("Func() called on a non-Task function")
-	}
-	return out
-}
-
-func taskArgs(f *Func, args []interface{}) bool {
-	// this function essentially does method dispatch for Tasks. returns true
-	// if a method got dispatched and normal behavior should be aborted
-	if len(args) != 2 {
-		return false
-	}
-	val, ok := args[0].(taskKey)
-	if !ok {
-		return false
-	}
-	switch val {
-	case taskGetFunc:
-		*(args[1].(**Func)) = f
-		return true
-	}
-	return false
+	return
 }
 
 // TaskNamed is like Task except you can choose the name of the associated

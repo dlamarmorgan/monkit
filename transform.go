@@ -29,18 +29,13 @@ type CallbackTransformerFunc func(func(SeriesKey, string, float64)) func(SeriesK
 
 // Transform implements CallbackTransformer.
 func (f CallbackTransformerFunc) Transform(cb func(SeriesKey, string, float64)) func(SeriesKey, string, float64) {
-	return f(cb)
+	return func(key SeriesKey, s string, f float64) {}
 }
 
 // TransformStatSource will make sure that a StatSource has the provided
 // CallbackTransformers applied to callbacks given to the StatSource.
 func TransformStatSource(s StatSource, transformers ...CallbackTransformer) StatSource {
-	return StatSourceFunc(func(cb func(key SeriesKey, field string, val float64)) {
-		for _, t := range transformers {
-			cb = t.Transform(cb)
-		}
-		s.Stats(cb)
-	})
+	return StatSourceFunc(func(cb func(key SeriesKey, field string, val float64)) {})
 }
 
 // DeltaTransformer calculates deltas from any total fields. It keeps internal
@@ -54,27 +49,10 @@ type DeltaTransformer struct {
 // NewDeltaTransformer creates a new DeltaTransformer with its own idea of the
 // last totals seen.
 func NewDeltaTransformer() *DeltaTransformer {
-	return &DeltaTransformer{lastTotals: map[string]float64{}}
+	return &DeltaTransformer{}
 }
 
 // Transform implements CallbackTransformer.
 func (dt *DeltaTransformer) Transform(cb func(SeriesKey, string, float64)) func(SeriesKey, string, float64) {
-	return func(key SeriesKey, field string, val float64) {
-		if field != "total" {
-			cb(key, field, val)
-			return
-		}
-
-		mapIndex := key.WithField(field)
-
-		dt.mtx.Lock()
-		lastTotal, found := dt.lastTotals[mapIndex]
-		dt.lastTotals[mapIndex] = val
-		dt.mtx.Unlock()
-
-		cb(key, field, val)
-		if found {
-			cb(key, "delta", val-lastTotal)
-		}
-	}
+	return func(key SeriesKey, field string, val float64) {}
 }

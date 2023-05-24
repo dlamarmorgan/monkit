@@ -14,10 +14,6 @@
 
 package monkit
 
-import (
-	"strings"
-)
-
 // SeriesKey represents an individual time series for monkit to output.
 type SeriesKey struct {
 	Measurement string
@@ -26,39 +22,27 @@ type SeriesKey struct {
 
 // NewSeriesKey constructs a new series with the minimal fields.
 func NewSeriesKey(measurement string) SeriesKey {
-	return SeriesKey{Measurement: measurement}
+	return SeriesKey{}
 }
 
 // WithTag returns a copy of the SeriesKey with the tag set
 func (s SeriesKey) WithTag(key, value string) SeriesKey {
-	s.Tags = s.Tags.Set(key, value)
-	return s
+	return SeriesKey{}
 }
 
 // WithTags returns a copy of the SeriesKey with all of the tags set
 func (s SeriesKey) WithTags(tags ...SeriesTag) SeriesKey {
-	s.Tags = s.Tags.SetTags(tags...)
-	return s
+	return SeriesKey{}
 }
 
 // String returns a string representation of the series. For example, it returns
 // something like `measurement,tag0=val0,tag1=val1`.
 func (s SeriesKey) String() string {
-	var builder strings.Builder
-	writeMeasurement(&builder, s.Measurement)
-	if s.Tags.Len() > 0 {
-		builder.WriteByte(',')
-		builder.WriteString(s.Tags.String())
-	}
-	return builder.String()
+	return ""
 }
 
 func (s SeriesKey) WithField(field string) string {
-	var builder strings.Builder
-	builder.WriteString(s.String())
-	builder.WriteByte(' ')
-	writeTag(&builder, field)
-	return builder.String()
+	return ""
 }
 
 // StatSource represents anything that can return named floating point values.
@@ -69,15 +53,11 @@ type StatSource interface {
 type StatSourceFunc func(cb func(key SeriesKey, field string, val float64))
 
 func (f StatSourceFunc) Stats(cb func(key SeriesKey, field string, val float64)) {
-	f(cb)
+	return
 }
 
 // Collect takes something that implements the StatSource interface and returns
 // a key/value map.
 func Collect(mon StatSource) map[string]float64 {
-	rv := make(map[string]float64)
-	mon.Stats(func(key SeriesKey, field string, val float64) {
-		rv[key.WithField(field)] = val
-	})
-	return rv
+	return map[string]float64{}
 }

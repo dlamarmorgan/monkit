@@ -15,11 +15,7 @@
 package monkit
 
 import (
-	"encoding/hex"
-	"fmt"
-	"sort"
-	"strconv"
-	"strings"
+	"go.opentelemetry.io/otel/attribute"
 	"time"
 )
 
@@ -35,159 +31,69 @@ type Annotation struct {
 	Value string
 }
 
-func (s *Span) addChild(child *Span) {
-	s.mtx.Lock()
-	s.children.Add(child)
-	done := s.done
-	s.mtx.Unlock()
-	if done {
-		child.orphan()
-	}
-}
-
-func (s *Span) removeChild(child *Span) {
-	s.mtx.Lock()
-	s.children.Remove(child)
-	s.mtx.Unlock()
-}
-
-func (s *Span) orphan() {
-	s.mtx.Lock()
-	if !s.done && !s.orphaned {
-		s.orphaned = true
-		s.f.scope.r.orphanedSpan(s)
-	}
-	s.mtx.Unlock()
-}
-
 // Duration returns the current amount of time the Span has been running
 func (s *Span) Duration() time.Duration {
-	return time.Since(s.start)
+	panic("not implemented")
 }
 
 // Start returns the time the Span started.
 func (s *Span) Start() time.Time {
-	return s.start
+	panic("not implemented")
 }
 
 // Value implements context.Context
 func (s *Span) Value(key interface{}) interface{} {
-	if key == spanKey {
-		return s
-	}
-	return s.Context.Value(key)
+	panic("not implemented")
 }
 
 // String implements context.Context
 func (s *Span) String() string {
-	// TODO: for working with Contexts
-	return fmt.Sprintf("%v.WithSpan()", s.Context)
+	panic("not implemented")
 }
 
 // Children returns all known running child Spans.
 func (s *Span) Children(cb func(s *Span)) {
-	found := map[*Span]bool{}
-	var sorter []*Span
-	s.mtx.Lock()
-	s.children.Iterate(func(s *Span) {
-		if !found[s] {
-			found[s] = true
-			sorter = append(sorter, s)
-		}
-	})
-	s.mtx.Unlock()
-	sort.Sort(spanSorter(sorter))
-	for _, s := range sorter {
-		cb(s)
-	}
+	panic("not implemented")
 }
 
 // Args returns the list of strings associated with the args given to the
 // Task that created this Span.
 func (s *Span) Args() (rv []string) {
-	rv = make([]string, 0, len(s.args))
-	for _, arg := range s.args {
-		switch arg := arg.(type) {
-		case string:
-			rv = append(rv, strconv.Quote(arg))
-		case []uint8:
-			rv = append(rv, "[]uint8(0x"+hex.EncodeToString(arg)+")")
-		case []interface{}:
-			rv = append(rv, interfacesToString(arg))
-		case time.Time:
-			rv = append(rv, "time.Time("+arg.Format(time.RFC3339Nano)+")")
-		default:
-			rv = append(rv, fmt.Sprintf("%#v", arg))
-		}
-	}
-	return rv
-}
-
-func interfacesToString(args []interface{}) string {
-	var b strings.Builder
-	b.WriteString("{")
-	for i, arg := range args {
-		if i > 0 {
-			b.WriteString(", ")
-		}
-		switch arg := arg.(type) {
-		case string:
-			b.WriteString(strconv.Quote(arg))
-		case []uint8:
-			b.WriteString("[]uint8(0x")
-			b.WriteString(hex.EncodeToString(arg))
-			b.WriteString(")")
-		case time.Time:
-			b.WriteString("time.Time(")
-			b.WriteString(arg.Format(time.RFC3339Nano))
-			b.WriteString(")")
-		default:
-			_, _ = fmt.Fprintf(&b, "%#v", arg)
-		}
-	}
-	b.WriteString("}")
-	return b.String()
+	panic("not implemented")
 }
 
 // Id returns the Span id.
-func (s *Span) Id() int64 { return s.id }
+func (s *Span) Id() int64 {
+	panic("not implemented")
+}
 
 // ParentId returns the id of the parent Span, if it has a parent.
 func (s *Span) ParentId() (int64, bool) {
-	if s.parentId != nil {
-		return *s.parentId, true
-	} else if s.parent != nil {
-		return s.parent.id, true
-	}
-	return 0, false
+	panic("not implemented")
 }
 
 // Func returns the Func that kicked off this Span.
-func (s *Span) Func() *Func { return s.f }
+func (s *Span) Func() *Func {
+	panic("not implemented")
+}
 
 // Trace returns the Trace this Span is associated with.
-func (s *Span) Trace() *Trace { return s.trace }
+func (s *Span) Trace() *Trace {
+	return &Trace{}
+}
 
 // Annotations returns any added annotations created through the Span Annotate
 // method
 func (s *Span) Annotations() []Annotation {
-	s.mtx.Lock()
-	annotations := s.annotations // okay cause we only ever append to this slice
-	s.mtx.Unlock()
-	return append([]Annotation(nil), annotations...)
+	panic("not implemented")
 }
 
 // Annotate adds an annotation to the existing Span.
 func (s *Span) Annotate(name, val string) {
-	s.mtx.Lock()
-	s.annotations = append(s.annotations, Annotation{Name: name, Value: val})
-	s.mtx.Unlock()
+	s.Span.SetAttributes(attribute.String(name, val))
 }
 
 // Orphaned returns true if the Parent span ended before this Span did.
 func (s *Span) Orphaned() (rv bool) {
-	s.mtx.Lock()
-	rv = s.orphaned
-	s.mtx.Unlock()
-	return rv
+	panic("not implemented")
 }

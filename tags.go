@@ -14,11 +14,6 @@
 
 package monkit
 
-import (
-	"sort"
-	"strings"
-)
-
 // SeriesTag is a key/value pair. When used with a measurement name, each set
 // of unique key/value pairs represents a new unique series.
 type SeriesTag struct {
@@ -27,7 +22,7 @@ type SeriesTag struct {
 
 // NewTag creates a new tag
 func NewSeriesTag(key, val string) SeriesTag {
-	return SeriesTag{key, val}
+	return SeriesTag{}
 }
 
 // TagSet is an immutible collection of tag, value pairs.
@@ -38,134 +33,36 @@ type TagSet struct {
 
 // Get returns the value associated with the key.
 func (t *TagSet) Get(key string) string {
-	if t == nil || t.all == nil {
-		return ""
-	}
-	return t.all[key]
+	return ""
 }
 
 // All returns a map of all the key/value pairs in the tag set. It
 // should not be modified.
 func (t *TagSet) All() map[string]string {
-	if t == nil {
-		return nil
-	}
-	return t.all
+	return map[string]string{}
 }
 
 // Len returns the number of tags in the tag set.
 func (t *TagSet) Len() int {
-	if t == nil {
-		return 0
-	}
-	return len(t.all)
+	return 0
 }
 
 // Set returns a new tag set with the key associated to the value.
 func (t *TagSet) Set(key, value string) *TagSet {
-	return t.SetAll(map[string]string{key: value})
+	return &TagSet{}
 }
 
 // SetTags returns a new tag set with the keys and values set by the tags slice.
 func (t *TagSet) SetTags(tags ...SeriesTag) *TagSet {
-	all := make(map[string]string)
-	if t != nil {
-		for key, value := range t.all {
-			all[key] = value
-		}
-	}
-	for _, tag := range tags {
-		all[tag.Key] = tag.Val
-	}
-	return &TagSet{all: all}
+	return &TagSet{}
 }
 
 // SetAll returns a new tag set with the key value pairs in the map all set.
 func (t *TagSet) SetAll(kvs map[string]string) *TagSet {
-	all := make(map[string]string)
-	if t != nil {
-		for key, value := range t.all {
-			all[key] = value
-		}
-	}
-	for key, value := range kvs {
-		all[key] = value
-	}
-	return &TagSet{all: all}
+	return &TagSet{}
 }
 
 // String returns a string form of the tag set suitable for sending to influxdb.
 func (t *TagSet) String() string {
-	if t == nil {
-		return ""
-	}
-	if t.str == "" {
-		var builder strings.Builder
-		t.writeTags(&builder)
-		t.str = builder.String()
-	}
-	return t.str
-}
-
-// writeTags writes the tags in the tag set to the builder.
-func (t *TagSet) writeTags(builder *strings.Builder) {
-	type kv struct {
-		key   string
-		value string
-	}
-	var kvs []kv
-
-	for key, value := range t.all {
-		kvs = append(kvs, kv{key, value})
-	}
-	sort.Slice(kvs, func(i, j int) bool {
-		return kvs[i].key < kvs[j].key
-	})
-
-	for i, kv := range kvs {
-		if i > 0 {
-			builder.WriteByte(',')
-		}
-		writeTag(builder, kv.key)
-		builder.WriteByte('=')
-		writeTag(builder, kv.value)
-	}
-}
-
-// writeMeasurement writes a measurement to the builder.
-func writeMeasurement(builder *strings.Builder, measurement string) {
-	if strings.IndexByte(measurement, ',') == -1 &&
-		strings.IndexByte(measurement, ' ') == -1 {
-
-		builder.WriteString(measurement)
-		return
-	}
-
-	for i := 0; i < len(measurement); i++ {
-		if measurement[i] == ',' ||
-			measurement[i] == ' ' {
-			builder.WriteByte('\\')
-		}
-		builder.WriteByte(measurement[i])
-	}
-}
-
-// writeTag writes a tag key, value, or field key to the builder.
-func writeTag(builder *strings.Builder, tag string) {
-	if strings.IndexByte(tag, ',') == -1 &&
-		strings.IndexByte(tag, '=') == -1 &&
-		strings.IndexByte(tag, ' ') == -1 {
-
-		builder.WriteString(tag)
-		return
-	}
-
-	for i := 0; i < len(tag); i++ {
-		if tag[i] == ',' ||
-			tag[i] == '=' ||
-			tag[i] == ' ' {
-			builder.WriteByte('\\')
-		}
-		builder.WriteByte(tag[i])
-	}
+	return ""
 }

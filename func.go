@@ -14,58 +14,49 @@
 
 package monkit
 
-import (
-	"fmt"
-)
-
 // Func represents a FuncStats bound to a particular function id, scope, and
 // name. You should create a Func using the Func creation methods
 // (Func/FuncNamed) on a Scope. If you want to manage installation bookkeeping
 // yourself, create a FuncStats directly. Expected Func creation like:
 //
-//   var mon = monkit.Package()
+//	var mon = monkit.Package()
 //
-//   func MyFunc() {
-//     f := mon.Func()
-//     ...
-//   }
-//
+//	func MyFunc() {
+//	  f := mon.Func()
+//	  ...
+//	}
 type Func struct {
 	// sync/atomic things
-	FuncStats
+	//FuncStats
 
 	// constructor things
-	id    int64
+	//id    int64
 	scope *Scope
-	key   SeriesKey
-}
-
-func newFunc(s *Scope, key SeriesKey) (f *Func) {
-	f = &Func{
-		id:    NewId(),
-		scope: s,
-		key:   key,
-	}
-	initFuncStats(&f.FuncStats, key)
-	return f
+	//key   SeriesKey
 }
 
 // ShortName returns the name of the function within the package
-func (f *Func) ShortName() string { return f.key.Tags.Get("name") }
+func (f *Func) ShortName() string {
+	return ""
+}
 
 // FullName returns the name of the function including the package
 func (f *Func) FullName() string {
-	return fmt.Sprintf("%s.%s", f.scope.name, f.key.Tags.Get("name"))
+	return ""
 }
 
 // Id returns a unique integer referencing this function
-func (f *Func) Id() int64 { return f.id }
+func (f *Func) Id() int64 {
+	return 0
+}
 
 // Scope references the Scope this Func is bound to
-func (f *Func) Scope() *Scope { return f.scope }
+func (f *Func) Scope() *Scope {
+	return &Scope{}
+}
 
 // Parents will call the given cb with all of the unique Funcs that so far
 // have called this Func.
 func (f *Func) Parents(cb func(f *Func)) {
-	f.FuncStats.parents(cb)
+	return
 }

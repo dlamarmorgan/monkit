@@ -14,35 +14,13 @@
 
 package monkit
 
-import (
-	crand "crypto/rand"
-	"encoding/binary"
-	"math/rand"
-	"sync/atomic"
-
-	"github.com/spacemonkeygo/monkit/v3/monotime"
-)
-
 var (
 	idCounter uint64
 	inc       uint64
 )
 
-func init() {
-	var buf [16]byte
-	if _, err := crand.Read(buf[:]); err == nil {
-		idCounter = binary.BigEndian.Uint64(buf[0:8]) >> 1
-		inc = binary.BigEndian.Uint64(buf[0:8])>>1 | 3
-	} else {
-		rng := rand.New(rand.NewSource(monotime.Now().UnixNano()))
-		idCounter = uint64(rng.Int63())
-		inc = uint64(rng.Int63() | 3)
-	}
-}
-
 // NewId returns a random integer intended for use when constructing new
 // traces. See NewTrace.
 func NewId() int64 {
-	id := atomic.AddUint64(&idCounter, inc)
-	return int64(id >> 1)
+	return 0
 }

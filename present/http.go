@@ -28,15 +28,9 @@ type handler struct {
 // package's FromRequest request router. Usually HTTP is called with the
 // Default registry.
 func HTTP(r *monkit.Registry) http.Handler {
-	return handler{Registry: r}
+	return handler{}
 }
 
 func (h handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	p, contentType, err := FromRequest(h.Registry, req.URL.Path, req.URL.Query())
-	if err != nil {
-		http.Error(w, err.Error(), getStatusCode(err, 500))
-		return
-	}
-	w.Header().Set("Content-Type", contentType)
-	p(w)
+	return
 }
